@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --secondary: #C8E6C9;
+            --background: #F5F5F5;
+        }
+        body {
+            background: var(--background);
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        .search-section {
+            margin: 20px 0;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .food-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .nutrition-facts {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .nutrition-item {
+            text-align: center;
+            padding: 8px;
+            background: #f8f8f8;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+                border-radius: 10px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .search-input {
+                padding: 10px;
+                font-size: 14px;
+            }
+            .nutrition-facts {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .food-card {
+                padding: 12px;
+            }
+            .nutrition-item {
+                font-size: 13px;
+                padding: 6px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 5px;
+                padding: 10px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .nutrition-facts {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .button {
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+            padding: 12px 24px;
+            background-color: #4CAF50; 
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .button {
+                width: 100%;
+                text-align: center;
+                margin: 15px auto;
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍏 Калориметр+</h1>
+        
+        <div class="search-section">
+            <input 
+                type="text" 
+                class="search-input" 
+                placeholder="Тағамның атауын енгізіңіз..."
+                id="foodSearch"
+            >
+        </div>
+
+        <div id="searchResults"></div>
+    </div>
+
+    <script>
+        const foodDatabase = {
+            "банан мен жаңғақ қосылған сұлы жармасы": {calories: 380, protein: 12, fat: 15, carbs: 55},
+            "көкөніс қосылған жұмыртқа": {calories: 250, protein: 18, fat: 15, carbs: 10},
+            "жидектер қосылған сүзбе": {calories: 220, protein: 25, fat: 8, carbs: 15},
+            "бал қосылған панкейктер": {calories: 320, protein: 8, fat: 12, carbs: 45},
+            "жасыл шөп пен ірімшік қосылған омлет": {calories: 290, protein: 20, fat: 22, carbs: 2},
+            "йогурт қосылған гранола": {calories: 350, protein: 10, fat: 14, carbs: 40},
+            "чиа пудингі": {calories: 250, protein: 7, fat: 12, carbs: 25},
+            "сүзбе қосылған блиндер": {calories: 340, protein: 15, fat: 10, carbs: 45},
+            "жұмыртқалы авокадо тосты": {calories: 310, protein: 12, fat: 20, carbs: 20},
+            "сүзбе пісірмесі": {calories: 270, protein: 18, fat: 9, carbs: 25},
+            "борщ": {calories: 200, protein: 8, fat: 10, carbs: 25},
+            "жұмыртқалы тауық сорпасы": {calories: 180, protein: 15, fat: 6, carbs: 20},
+            "палау": {calories: 450, protein: 18, fat: 20, carbs: 50},
+            "окрошка": {calories: 220, protein: 9, fat: 10, carbs: 20},
+            "лимон қосылған балық қуырылған": {calories: 280, protein: 35, fat: 12, carbs: 5},
+            "көкөніспен гриль тауық": {calories: 320, protein: 40, fat: 15, carbs: 10},
+            "көкөніс сорпасы": {calories: 150, protein: 5, fat: 5, carbs: 20}
+        };
+
+        document.getElementById('foodSearch').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const resultsContainer = document.getElementById('searchResults');
+            resultsContainer.innerHTML = '';
+
+            if (searchTerm.length < 2) return;
+
+            const matches = Object.entries(foodDatabase)
+                .filter(([name]) => name.includes(searchTerm))
+                .slice(0, 10);
+
+            if (matches.length > 0) {
+                matches.forEach(([name, data]) => {
+                    const card = document.createElement('div');
+                    card.className = 'food-card';
+                    card.innerHTML = `
+                        <b>${name}</b>
+                        <div class="nutrition-facts">
+                            <div class="nutrition-item">${data.calories} ккал</div>
+                            <div class="nutrition-item">Б:${data.protein}г</div>
+                            <div class="nutrition-item">М:${data.fat}г</div>
+                            <div class="nutrition-item">Қ:${data.carbs}г</div>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(card);
+                });
+            } else {
+                resultsContainer.innerHTML = '<div class="food-card">Ештеңе табылмады 😢</div>';
+            }
+        });
+    </script>
+    <a href="file:///C:/Users/Sulpak/OneDrive/%D0%A0%D0%B0%D0%B1%D0%BE%D1%87%D0%B8%D0%B9%20%D1%81%D1%82%D0%BE%D0%BB/%D0%A1%D0%B0%D0%B9%D1%82%20%D0%BD%D0%B0%20%D1%82%D0%B5%D0%BC%D1%83%20%D0%97%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%D1%8C%D0%B5%20%D0%9D%D0%9D/IndeBNN01.html" class="button">Артқа қайту</a>
+</body>
+</html>
